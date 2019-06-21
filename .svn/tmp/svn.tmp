@@ -1,0 +1,304 @@
+// TCSS 305 - Autumn 2018
+// Assignment 4 - SnapShopGUI
+
+package gui;
+
+import java.awt.BorderLayout;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.IOException;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+
+import filters.AbstractFilter;
+import filters.EdgeDetectFilter;
+import filters.EdgeHighlightFilter;
+import filters.Filter;
+import filters.FlipHorizontalFilter;
+import filters.FlipVerticalFilter;
+import filters.GrayscaleFilter;
+import filters.SharpenFilter;
+import filters.SoftenFilter;
+import image.PixelImage;
+
+/**
+ * 
+ * @author Bayley Cope
+ * @version November 1 2018
+ */
+public class SnapShopGUI extends JFrame implements ActionListener {
+    
+    /** Serial version UID. */
+    private static final long serialVersionUID = 0;
+    
+    // Capture screen dimensions
+    
+    /** A toolkit. */
+    private static final Toolkit KIT = Toolkit.getDefaultToolkit();
+    
+    /** Dimension of the screen. */
+    private static final Dimension SCREEN_SIZE = KIT.getScreenSize();
+    
+    // The button text
+    
+    /** Edge detect. */
+    private static final String EDGE_DETECT = "Edge Detect";
+    
+    /** Edge highlight. */
+    private static final String EDGE_HIGHLIGHT = "Edge Highlight";
+    
+    /** Flip horizontal. */
+    private static final String FLIP_HORIZONTAL = "Flip Horizontal";
+    
+    /** Flip vertical. */
+    private static final String FLIP_VERTICAL = "Flip Vertical";
+    
+    /** Grayscale. */
+    private static final String GRAYSCALE = "Grayscale";
+    
+    /** Sharpen. */
+    private static final String SHARPEN = "Sharpen";
+    
+    /** Soften. */
+    private static final String SOFTEN = "Soften";
+
+    /** Open. */
+    private static final String OPEN = "Open...";
+    
+    /** Save as. */
+    private static final String SAVE_AS = "Save As...";
+    
+    /** Close image. */
+    private static final String CLOSE_IMAGE = "Close Image";
+    
+    // Errors
+    
+    /** Error Message. */
+    private static final String ERROR_MESSAGE = "The selected file did not contain an image!";
+    
+    /** Error Title. */
+    private static final String ERROR_TITLE = "Error!";
+    
+    // Filter Objects
+    
+    /** Edge Detect. */
+    private EdgeDetectFilter myEdgeDetectFilter;
+    
+    /** Edge Highlight. */
+    private EdgeHighlightFilter myEdgeHighlightFilter;
+    
+    /** Flip Horizontal. */
+    private FlipHorizontalFilter myFlipHorizontalFilter;
+    
+    /** Flip Vertical. */
+    private FlipVerticalFilter myFlipVerticalFilter;
+    
+    /** GrayScale. */
+    private GrayscaleFilter myGrayscaleFilter;
+    
+    /** Sharpen. */
+    private SharpenFilter mySharpenFilter;
+    
+    /** Soften. */
+    private SoftenFilter mySoftenFilter;
+    
+    // Other
+    
+    /** File Chooser. */
+    private JFileChooser myChooser = new JFileChooser();
+
+    /** The Picture. */
+    private PixelImage myPic;
+    
+    /** JLabel. */
+    private JLabel myLabel = new JLabel();
+    
+    // Arrays
+    
+    /** Number of filter buttons. */
+    private final int myNumberOfFilterButtons = 7;
+    
+    /** Array of filter buttons. */
+    private final JButton[] myFilterButtons = new JButton[myNumberOfFilterButtons];
+    
+    /** Number of option buttons. */
+    private final int myNumberOfOptionButtons = 3;
+    
+    /** Array of option buttons. */
+    private final JButton[] myOptionButtons = new JButton[myNumberOfOptionButtons];
+
+    /** Size of the panel. */
+    private Dimension mySize;
+    
+    /** Constructs a new SnapShopGUI. */
+    public void start() {
+        initialize();
+        setVisible(true);
+    }
+    
+    /** Sets up the GUI. */
+    private void initialize() {
+        this.setTitle("TCSS 305 - Assignment 4");
+        myEdgeDetectFilter = new EdgeDetectFilter();
+        // North Panel
+        northPanelButtons();
+        
+        // South Panel
+        southPanelButtons();
+        
+        // Center Panel
+        final JPanel center = new JPanel();
+        center.add(myLabel);
+        add(center, BorderLayout.CENTER);
+        
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setResizable(true);
+        pack();
+        mySize = getSize();
+        setLocation(SCREEN_SIZE.width / 2 - getWidth() / 2,
+                    SCREEN_SIZE.height / 2 - getHeight() / 2);
+    }
+    
+    /**
+     * A method called in response to action events.
+     * 
+     * @param theEvent the action that triggered the call
+     */
+    @Override
+    public void actionPerformed(final ActionEvent theEvent) {
+        System.out.print("test");
+        final String command = theEvent.getActionCommand();
+        if (command.equals(OPEN)) {
+            chooseFile();
+        } else if (command.equals(SAVE_AS)) {
+            saveFile();
+        } else if (command.equals(CLOSE_IMAGE)) {
+            setMinimumSize(null);
+            myLabel.setIcon(null);
+            pack();
+            for (int i = 0; i < myOptionButtons.length; i++) {
+                if (i != 0) {
+                    myOptionButtons[i].setEnabled(false);
+                }
+            }
+            for (int i = 0; i < myFilterButtons.length; i++) {
+                myFilterButtons[i].setEnabled(false);
+            }
+        }
+    }
+    
+    /**
+     * A method called for filter action events.
+     * 
+     * @param theEvent the action that triggered the call
+     */
+    public void filterAction(final ActionEvent theEvent) {
+        final String command = theEvent.getActionCommand();
+        if (command.equals(EDGE_DETECT)) {
+            myEdgeDetectFilter.filter(myPic);
+            myLabel.setIcon(new ImageIcon(myPic));
+        } else if (command.equals(EDGE_HIGHLIGHT)) {
+            myEdgeHighlightFilter.filter(myPic);
+            myLabel.setIcon(new ImageIcon(myPic));
+        } else if (command.equals(FLIP_HORIZONTAL)) {
+            myFlipHorizontalFilter.filter(myPic);
+            myLabel.setIcon(new ImageIcon(myPic));
+        } else if (command.equals(FLIP_VERTICAL)) {
+            myFlipVerticalFilter.filter(myPic);
+            myLabel.setIcon(new ImageIcon(myPic));
+        } else if (command.equals(GRAYSCALE)) {
+            myGrayscaleFilter.filter(myPic);
+            myLabel.setIcon(new ImageIcon(myPic));
+        } else if (command.equals(SHARPEN)) {
+            mySharpenFilter.filter(myPic);
+            myLabel.setIcon(new ImageIcon(myPic));
+        } else if (command.equals(SOFTEN)) {
+            mySoftenFilter.filter(myPic);
+            myLabel.setIcon(new ImageIcon(myPic));
+        }
+    }
+    
+    /** The northPanel, containing all of the filter buttons. */
+    public void northPanelButtons() {
+        final String[] filters = {EDGE_DETECT, EDGE_HIGHLIGHT, FLIP_HORIZONTAL,
+                                  FLIP_VERTICAL, GRAYSCALE, SHARPEN, SOFTEN};
+        final JPanel n = new JPanel();
+        for (int i = 0; i < myFilterButtons.length; i++) {
+            myFilterButtons[i] = new JButton(filters[i]);
+            myFilterButtons[i].addActionListener(this);
+            myFilterButtons[i].setEnabled(false);
+            n.add(myFilterButtons[i]);
+            
+        }
+        add(n, BorderLayout.NORTH);
+        n.setVisible(true);
+    }
+    
+    /** The southPanel, containing all of the option buttons. */
+    public void southPanelButtons() {
+        final String[] options = {OPEN, SAVE_AS, CLOSE_IMAGE};
+        final JPanel s = new JPanel();
+        for (int i = 0; i < myOptionButtons.length; i++) {
+            myOptionButtons[i] = new JButton(options[i]);
+            myOptionButtons[i].addActionListener(this);
+            if (i != 0) {
+                myOptionButtons[i].setEnabled(false);
+            }
+            s.add(myOptionButtons[i]);
+        }
+        add(s, BorderLayout.SOUTH);
+        s.setVisible(true);
+    }
+    
+    /** A method that is called to open a file for the GUI. */
+    public void chooseFile() {
+        final int file = myChooser.showOpenDialog(null);
+        if (file == JFileChooser.APPROVE_OPTION) {
+            try {
+                myPic = PixelImage.load(myChooser.getSelectedFile());
+                myLabel.setIcon(new ImageIcon(myPic));
+                for (int i = 0; i < myOptionButtons.length; i++) {
+                    myOptionButtons[i].setEnabled(true);
+                }
+                for (int i = 0; i < myFilterButtons.length; i++) {
+                    myFilterButtons[i].setEnabled(true);
+                }
+                setMinimumSize(mySize);
+                pack();
+                setMinimumSize(getSize());
+                pack();
+                setLocation(SCREEN_SIZE.width / 2 - getWidth() / 2,
+                            SCREEN_SIZE.height / 2 - getHeight() / 2);
+            } catch (final IOException e) {
+                JOptionPane.showMessageDialog(null,
+                                            ERROR_MESSAGE,
+                                            ERROR_TITLE,
+                                            JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+    
+    /** A method that is called to save the file. */
+    public void saveFile() {
+        final int file = myChooser.showSaveDialog(null);
+        if (file == JFileChooser.APPROVE_OPTION) {
+            try {
+                myPic.save(myChooser.getSelectedFile());
+            } catch (final IOException e) {
+                JOptionPane.showMessageDialog(null,
+                                              "Could not save the selected file!",
+                                              ERROR_TITLE,
+                                              JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+}
