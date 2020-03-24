@@ -207,6 +207,7 @@ public class SnapShopGUI implements ActionListener {
      */
     public SnapShopGUI() {
         myFrame = new JFrame();
+        myFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         myFileChooser = new JFileChooser();
         myFileChooser.setCurrentDirectory(new File("."));
         myLabel = new JLabel();
